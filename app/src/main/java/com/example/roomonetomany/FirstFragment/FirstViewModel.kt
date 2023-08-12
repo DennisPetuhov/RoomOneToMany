@@ -29,7 +29,7 @@ class FirstViewModel @Inject constructor(var dao: MyDao, val repository: Databas
 
 
     init {
-        getMainEntities()
+//        getMainEntities()
         getOneToMAnyEntities()
 
     }
@@ -98,7 +98,8 @@ class FirstViewModel @Inject constructor(var dao: MyDao, val repository: Databas
 
     fun saveOneToMany(oneToManyRelation: OneToManyRelation) {
         viewModelScope.launch {
-            repository.saveOneToMany(oneToManyRelation).flatMapConcat {
+//            repository.saveOneToMany(oneToManyRelation).flatMapConcat {
+            repository.updateOneToMany(oneToManyRelation).flatMapConcat {
                 flow {
                     emit(oneToManyRelation)
                     println("### PERSON ${oneToManyRelation.mainEntity.name} ADDED")
@@ -109,5 +110,11 @@ class FirstViewModel @Inject constructor(var dao: MyDao, val repository: Databas
 
         }
 
+    }
+
+    fun deleteMainEntity(item: OneToManyRelation) {
+        viewModelScope.launch {
+            repository.deleteMainEntity(item).collect{}
+        }
     }
 }

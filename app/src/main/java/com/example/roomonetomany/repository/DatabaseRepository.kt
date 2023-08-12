@@ -13,7 +13,7 @@ class DatabaseRepository @Inject constructor(private val dao: MyDao) {
 
     fun saveMainEntity(entity: MainEntity): Flow<Unit> {
         return flow {
-            dao.saveContact(entity)
+            dao.saveMainEntity(entity)
             emit(Unit)
         }
     }
@@ -36,6 +36,9 @@ class DatabaseRepository @Inject constructor(private val dao: MyDao) {
         return dao.getOneToMaNyEntities()
 
     }
+    fun findSubEntityByMainEntityId(subId:Long) :Flow<List<SubEntity>>{
+        return dao.findSubEntityByMainEntityId(subId)
+    }
 
 
 
@@ -49,15 +52,34 @@ class DatabaseRepository @Inject constructor(private val dao: MyDao) {
         }
     }
 
+    fun updateOneToMany(oneToManyRelation: OneToManyRelation):Flow<Unit>{
+        return flow {
+            dao.updateOneToMany(oneToManyRelation)
+            emit(Unit)
+        }
+    }
+
+    fun deleteMainEntity(item: OneToManyRelation):Flow<Unit> {
+        return flow {
+     dao.deleteMainEntity(item.mainEntity)
+        emit(Unit)}
+    }
+
 
     suspend fun updateTask(entity: MainEntity) = dao.updateContact(entity)
-    suspend fun deleteContact(entity: MainEntity) = dao.deleteContact(entity)
+    suspend fun deleteContact(entity: MainEntity) = dao.deleteMainEntity(entity)
     fun getDetailsContact(id: Int) = dao.getContact(id)
     fun getAllContacts() = dao.getAllContacts()
     fun deleteAllContacts() = dao.deleteAllContacts()
     fun getSortedListASC() = dao.sortedASC()
     fun getSortedListDESC() = dao.sortedDESC()
     fun searchContact(name: String) = dao.searchContact(name)
+    fun deleteSubEntity(item: SubEntity):Flow<Unit> {
+        return flow {
+            dao.deleteSubEntity(item)
+            emit(Unit)
+        }
+    }
 
 
 }

@@ -13,8 +13,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.roomonetomany.FirstFragment.Recycler.SubEntityListAdapter
 import com.example.roomonetomany.R
+import com.example.roomonetomany.SecondFragment.Recycler.StateOfSubEntityListAdapter
 import com.example.roomonetomany.databinding.FragmentSecondBinding
-import com.example.roomonetomany.db.MainEntity
 import com.example.roomonetomany.db.OneToManyRelation
 import com.example.roomonetomany.db.SubEntity
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,82 +23,145 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class SecondFragment : Fragment() {
-    lateinit var  binding:FragmentSecondBinding
-    val viewModel:SecondViewModel by viewModels()
-    @Inject
-    lateinit var adapter:SubEntityListAdapter
+    private lateinit var binding: FragmentSecondBinding
+    private val viewModel: SecondViewModel by viewModels()
 
-    companion object {
-        fun newInstance() = SecondFragment()
-    }
+    @Inject
+    lateinit var adapter: SubEntityListAdapter
 
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentSecondBinding.inflate(inflater, container, false)
+
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        // TODO: Use the ViewModel
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        observeSubEntity()
+        observeAdapterState()
         navigate()
-
-        observeOneToMAny()
+        makeAction()
         putArgs()
         binding.button5.setOnClickListener {
             viewModel.getSubEntities()
         }
+        binding.buttonToDb.setOnClickListener {
+            addSubEntityToDB()
+
+        }
 
 
     }
 
-    fun navigate(){
-        binding.button2.setOnClickListener {
-            findNavController().navigate(R.id.action_secondFragment_to_firstFragment)
+    private fun observeSubEntity() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.subEntityState.collect {
+                    initRecycler(it)
+                }
+            }
         }
     }
-    fun getArgs():OneToManyRelation{
-        val args = SecondFragmentArgs.fromBundle(requireArguments())
-        val onetomany= args.onetomany
-        return onetomany
+
+
+    private fun observeAdapterState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.subEntityAdapterState.collect {
+                    when (it) {
+                        is StateOfSubEntityListAdapter.Idle -> {}
+                        is StateOfSubEntityListAdapter.Remove -> {
+                            adapter.notifyItemRemoved(it.position)
+                                 }
+
+                        is StateOfSubEntityListAdapter.Add -> {
+
+                             adapter.notifyItemInserted(viewModel.subEntityState.value.lastIndex)
+                        }
+                    }
+                }
+            }
+        }
     }
-    fun putArgs(){
 
-        viewModel.setOneTomany(getArgs())
-    }
-
-
-    fun initRecycler(list: MutableList<SubEntity>?) {
+    private fun initRecycler(list: List<Any>) {
 
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
         }
+        val new = list as List<SubEntity>
         binding.recyclerView.adapter = adapter
-        adapter.submitList(list)
+        new.toList()
+        adapter.submitList(new)
+
+
+
     }
 
-  fun  observeOneToMAny(){
-      lifecycleScope.launch{
-          repeatOnLifecycle(Lifecycle.State.STARTED){
-              viewModel.oneToManyEntityState.collect{
-                  initRecycler(it.subComponentList.toMutableList())
-              }
-          }
-      }
-  }
+    private fun makeAction() {
 
+        adapter.bindAction { action ->
+            lifecycleScope.launch {
+                viewModel.deleteSubEntity(action)
 
-    private fun getSubEntities(){
+            }
+        }
+
+    }
+    private fun addSubEntityToDB() {
+        val newEntity = SubEntity(surname = binding.editTextText.text.toString())
+        viewModel.saveAndAddNewSubEntity(newEntity)
+    }
+
+    private fun navigate() {
+        binding.button2.setOnClickListener {
+            findNavController().navigate(R.id.action_secondFragment_to_firstFragment)
+        }
+    }
+
+    private fun getArgs(): OneToManyRelation {
+        val args = SecondFragmentArgs.fromBundle(requireArguments())
+        val onetomany = args.onetomany
+        println("GETARGS")
+        return onetomany
+    }
+
+    private fun putArgs() {
+        val entity = getArgs()
+        viewModel.setOneToMany(entity)
+        println("BUNDLE")
+    }
+    private fun observeOneToMAny() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
-                viewModel.subEntityState.collect{
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.oneToManyEntityState.collect {
+                    val list = it.subEntityList.toList()
+                    adapter.notifyDataSetChanged()
+                    println("qwerty" + list)
+                    initRecycler(list)
+
+                }
+            }
+        }
+    }
+
+    private fun saveSubEntity() {
+        val name = binding.editTextText.text
+        binding.buttonToDb.setOnClickListener {
+            viewModel.saveSubEntity(name.toString())
+        }
+
+    }
+
+    private fun getSubEntities() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.subEntityState.collect {
                     initRecycler(it)
 
                 }
@@ -107,12 +170,4 @@ class SecondFragment : Fragment() {
         }
 
     }
-    private fun saveSubEntity(){
-        val name = binding.editTextText.text
-        binding.buttonToDb.setOnClickListener {
-            viewModel.saveSubEntity(name.toString())
-        }
-
-    }
-
 }

@@ -9,9 +9,12 @@ import kotlinx.parcelize.Parcelize
 data class OneToManyRelation(
     @Embedded val mainEntity: MainEntity,
     @Relation(
-
         parentColumn = "id",
         entityColumn = "subId"
     )
-    val subComponentList: List<SubEntity>
-):Parcelable
+    var subEntityList: MutableList<SubEntity>
+) : Parcelable {
+ fun  addSubEntityToList(subEntity: SubEntity){
+     subEntityList.add(subEntity)
+ }
+}

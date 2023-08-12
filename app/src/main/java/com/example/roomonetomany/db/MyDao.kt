@@ -16,32 +16,50 @@ interface MyDao {
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-   fun saveSubContacts(subEntity: SubEntity)
+    suspend fun saveSubContacts(subEntity: SubEntity)
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-     fun saveContact(mainEntity: MainEntity)
+    suspend fun saveMainEntity(mainEntity: MainEntity): Long
 
     @Transaction
     @Query("SELECT * FROM $MAIN_ENTITY_TABLE")
     fun getOneToMaNyEntities(): Flow<List<OneToManyRelation>>
 
     @Transaction
-   fun saveOneToMany(oneToManyRelation: OneToManyRelation) {
-        saveContact(oneToManyRelation.mainEntity)
+    suspend fun saveOneToMany(oneToManyRelation: OneToManyRelation) {
+        saveMainEntity(oneToManyRelation.mainEntity)
         println("%%%" + oneToManyRelation.mainEntity.name)
-        for (sub in oneToManyRelation.subComponentList) {
+        for (sub in oneToManyRelation.subEntityList) {
             saveSubContacts(sub)
         }
 
     }
+
+    @Transaction
+    suspend fun updateOneToMany(oneToManyRelation: OneToManyRelation) {
+        val myId = saveMainEntity(oneToManyRelation.mainEntity)
+
+        println("%%%" + oneToManyRelation.mainEntity.name + myId)
+        for (sub in oneToManyRelation.subEntityList) {
+            sub.subId = myId
+            saveSubContacts(sub)
+        }
+
+    }
+
+    @Query("SELECT * FROM $SUB_ENTITY_TABLE WHERE subId = :subId ")
+    fun findSubEntityByMainEntityId(subId: Long): Flow<List<SubEntity>>
 
 
     @Update
     suspend fun updateContact(mainEntity: MainEntity)
 
     @Delete
-    suspend fun deleteContact(mainEntity: MainEntity)
+  suspend  fun deleteMainEntity(mainEntity: MainEntity)
+
+    @Delete
+    suspend fun deleteSubEntity(item: SubEntity)
 
     @Query("SELECT * FROM $MAIN_ENTITY_TABLE WHERE id ==:id")
     fun getContact(id: Int): Flow<MainEntity>
@@ -60,4 +78,5 @@ interface MyDao {
 
     @Query("SELECT * FROM $MAIN_ENTITY_TABLE WHERE name LIKE '%' || :name || '%' ")
     fun searchContact(name: String): Flow<MutableList<MainEntity>>
+
 }

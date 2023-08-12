@@ -10,7 +10,7 @@ import kotlinx.parcelize.Parcelize
 @Entity(tableName = MAIN_ENTITY_TABLE)
 data class MainEntity(
     @PrimaryKey(autoGenerate = true)
-    var id: Int = 0,
+    var id: Long = 0,
     var name: String = "",
     var phone: String = "",
 ):Parcelable

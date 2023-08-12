@@ -2,7 +2,7 @@ package com.example.roomonetomany.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.roomonetomany.db.ContactsDB
+import com.example.roomonetomany.db.MyDB
 import com.example.roomonetomany.db.MainEntity
 import com.example.roomonetomany.utils.Constants.CONTACTS_DATABASE
 
@@ -20,15 +20,15 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context) = Room.databaseBuilder(
-        context, ContactsDB::class.java, CONTACTS_DATABASE
+    fun provideDatabase(@ApplicationContext context: Context):MyDB = Room.databaseBuilder(
+        context, MyDB::class.java, CONTACTS_DATABASE
     ).allowMainThreadQueries()
         .fallbackToDestructiveMigration().build()
 
 
     @Provides
     @Singleton
-    fun provideDao(db: ContactsDB) = db.contactsDao()
+    fun provideDao(db: MyDB) = db.MyDao()
 
 
     @Provides

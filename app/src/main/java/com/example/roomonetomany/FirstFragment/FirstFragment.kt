@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -28,25 +29,28 @@ class FirstFragment : Fragment() {
     @Inject
     lateinit var adapter: OneToManyListAdapter
 
+
     val subContact = SubEntity(surname = "XO")
 
     val oneToMAnyEntity = OneToManyRelation(
-        MainEntity(name = "WW"), listOf(
+        MainEntity(name = "WW"), mutableListOf(
             SubEntity(surname = "ww"),
             SubEntity(surname = "44")
         )
     )
     val listOfOneToManyRelation = listOf(
         OneToManyRelation(
-            MainEntity(name = "WW"), listOf(
+            MainEntity(name = "WW"), mutableListOf(
                 SubEntity(surname = "ww"),
-                SubEntity(surname = "44")
+                SubEntity(surname = "44"),
+                SubEntity(surname = "66")
             )
         ),
         OneToManyRelation(
-            MainEntity(name = "qq"), listOf(
+            MainEntity(name = "qq"), mutableListOf(
                 SubEntity(surname = "qq"),
-                SubEntity(surname = "55")
+                SubEntity(surname = "55"),
+                SubEntity(surname = "77")
             )
         )
     )
@@ -75,32 +79,37 @@ class FirstFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         saveOneToManyEntity(listOfOneToManyRelation)
-        navigare()
+        navigate()
         getOneToManyEntities()
 
 
 
-//        binding.button3.setOnClickListener {
-//            viewModel.getOneToMAnyEntities()
-//            Toast.makeText(requireContext(), "###", Toast.LENGTH_SHORT).show()
-//        }
+        binding.button3.setOnClickListener {
+            val text = binding.editText.text.toString()
+            val newEntity = OneToManyRelation(MainEntity(name = text), mutableListOf())
+            viewModel.saveOneToMany(newEntity)
+            Toast.makeText(requireContext(), "$text created", Toast.LENGTH_SHORT).show()
+        }
 
-        sendAction()
+        makeAction()
     }
 
-    fun navigare() {
+    private fun navigate() {
         binding.button.setOnClickListener {
             findNavController().navigate(R.id.action_firstFragment_to_secondFragment)
         }
     }
 
-    fun sendAction() {
+    private fun makeAction() {
         adapter.bind {
             val action =
                 FirstFragmentDirections.actionFirstFragmentToSecondFragment(it)
             action.onetomany
             findNavController().navigate(action)
 
+        }
+        adapter.bindAction{
+            viewModel.deleteMainEntity(it)
         }
 
     }
@@ -159,3 +168,5 @@ class FirstFragment : Fragment() {
     }
 
 }
+
+

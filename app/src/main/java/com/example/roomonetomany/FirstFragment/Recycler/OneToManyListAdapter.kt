@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import com.example.roomonetomany.FirstFragment.OnClick
+import com.example.roomonetomany.FirstFragment.SamDelete
 import com.example.roomonetomany.databinding.ContactsViewBinding
 import com.example.roomonetomany.db.OneToManyRelation
 
@@ -15,6 +16,11 @@ class OneToManyListAdapter @Inject constructor()  :ListAdapter<OneToManyRelation
     var onClick:OnClick? = null
     fun bind(onclick:OnClick){
         this.onClick = onclick
+    }
+
+    var action: SamDelete?=null
+    fun bindAction(action: SamDelete){
+        this.action=action
     }
 
 
@@ -29,9 +35,9 @@ class OneToManyListAdapter @Inject constructor()  :ListAdapter<OneToManyRelation
        holder.bindTo(item)
         holder.binding.myItem.setOnClickListener{
             onClick?.onClick(item)
-
-
-
+        }
+        holder.binding.deleteButton.setOnClickListener {
+            action?.delete(item)
         }
 
     }
